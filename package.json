@@ -1,0 +1,80 @@
+{
+  "name": "google-sheet-cli",
+  "description": "A simple helper cli to interact with google sheets.",
+  "version": "0.0.0",
+  "bin": {
+    "google-sheet": "./bin/run"
+  },
+  "bugs": "https://github.com/jroehl/google-sheet-cli/issues",
+  "dependencies": {
+    "@oclif/core": "^2.8.5",
+    "@oclif/plugin-help": "^5.2.9",
+    "googleapis": "^118.0.0",
+    "husky": "^8.0.3",
+    "lodash.get": "^4.4.2",
+    "oclif": "^3.9.0",
+    "semantic-release": "^21.0.2",
+    "tslib": "^2.5.2"
+  },
+  "devDependencies": {
+    "@oclif/test": "^2.3.21",
+    "@types/chai": "^4.3.5",
+    "@types/lodash.get": "^4.4.7",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.2.3",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/jroehl/google-sheet-cli",
+  "keywords": [
+    "oclif",
+    "cli",
+    "google sheets"
+  ],
+  "author": "jroehl <mail@johannroehl.de>",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "google-sheet",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topics": {
+      "data": {
+        "description": "Manage data in worksheet"
+      },
+      "worksheet": {
+        "description": "Manage worksheets"
+      },
+      "spreadsheet": {
+        "description": "Manage spreadsheets"
+      }
+    }
+  },
+  "repository": "jroehl/google-sheet-cli",
+  "scripts": {
+    "build": "rm -rf dist && tsc -b",
+    "postpack": "rm -f oclif.manifest.json",
+    "version": "oclif readme --multi && sh ./bin/clean.sh && git add README.md docs/*.md",
+    "prepack": "npm run build && oclif manifest && oclif readme --multi",
+    "test": "nyc mocha \"test/**/*.test.ts\"",
+    "semantic-release": "semantic-release",
+    "prepare": "husky install",
+    "cleanup": "bin/clear-testsheet.sh"
+  },
+  "types": "lib/index.d.ts"
+}

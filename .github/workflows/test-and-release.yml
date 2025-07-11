@@ -1,0 +1,100 @@
+name: 'Test (and release) version'
+on:
+  push:
+    branches:
+      - master
+  pull_request_target:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: ci
+        run: npm ci
+      
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v1
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Load Secrets
+        uses: 1password/load-secrets-action@v1
+        with:
+          unset-previous: false
+          export-env: true
+        env:
+          GSHEET_CLIENT_EMAIL: "op://service-account/github.actions/GSHEET_CLIENT_EMAIL"
+          GSHEET_PRIVATE_KEY: "op://service-account/github.actions/GSHEET_PRIVATE_KEY"
+          TEST_SPREADSHEET_ID: "op://service-account/github.actions/TEST_SPREADSHEET_ID"
+
+      - name: test
+        run: npm run test
+        env:
+          GSHEET_CLIENT_EMAIL: ${{ env.GSHEET_CLIENT_EMAIL }}
+          GSHEET_PRIVATE_KEY: ${{ env.GSHEET_PRIVATE_KEY }}
+          TEST_SPREADSHEET_ID: ${{ env.TEST_SPREADSHEET_ID }}
+
+      - name: check for uncommitted changes
+        # Ensure no changes, but ignore node_modules dir since dev/fresh ci deps installed.
+        run: |
+          git diff --exit-code --stat -- . ':!node_modules' \
+          || (echo "##[error] found changed files after build. please 'npm run build && npm run format'" \
+                   "and check in all changes" \
+              && exit 1)
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: ci
+        run: npm ci
+      
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v1
+        with:
+          service-account-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Load Secrets
+        uses: 1password/load-secrets-action@v1
+        with:
+          unset-previous: false
+          export-env: true
+        env:
+          NPM_TOKEN: "op://service-account/github.actions/NPM_TOKEN"
+
+      - name: semantic-release
+        run: |
+          npm run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ env.NPM_TOKEN }}
+
+  auto-approve:
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: hmarr/auto-approve-action@v3
+        if: github.actor == 'dependabot[bot]' || github.actor == 'dependabot-preview[bot]'
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
