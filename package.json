@@ -7,7 +7,7 @@
   },
   "bugs": "https://github.com/jroehl/google-sheet-cli/issues",
   "dependencies": {
-    "@oclif/core": "^2.8.5",
+    "@oclif/core": "^4.5.0",
     "@oclif/plugin-help": "^5.2.9",
     "googleapis": "^118.0.0",
     "husky": "^8.0.3",
