@@ -10,7 +10,7 @@
     "@oclif/core": "^2.8.5",
     "@oclif/plugin-help": "^5.2.9",
     "googleapis": "^118.0.0",
-    "husky": "^8.0.3",
+    "husky": "^9.1.7",
     "lodash.get": "^4.4.2",
     "oclif": "^3.9.0",
     "semantic-release": "^21.0.2",
